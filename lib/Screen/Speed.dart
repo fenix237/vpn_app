@@ -1,8 +1,7 @@
 import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
-
+import '../Utils/Global.dart';
 
 class SpeedTestScreen extends StatefulWidget {
   const SpeedTestScreen({super.key});
@@ -14,9 +13,12 @@ class SpeedTestScreen extends StatefulWidget {
 class _SpeedTestScreenState extends State<SpeedTestScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<double> _speedAnimation;
+  late Animation<double> _animation;
 
-  final double targetSpeed = 20.5; 
+  late double targetUploadMain;
+  late double targetDownload;
+  late double targetPing;
+  late double targetUploadStat;
 
   @override
   void initState() {
@@ -26,14 +28,21 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
       duration: const Duration(seconds: 2),
     );
 
-    _speedAnimation = Tween<double>(begin: 0.0, end: targetSpeed).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
     );
 
+    _generateRandomTargets(); 
     _animationController.forward();
+  }
+
+  void _generateRandomTargets() {
+    final random = Random();
+    targetUploadMain = random.nextDouble() * 75; 
+    targetDownload = random.nextDouble() * 100;
+    targetPing = 10 + random.nextDouble() * 190; 
+    targetUploadStat = random.nextDouble() * 100;
   }
 
   @override
@@ -44,27 +53,34 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            const SizedBox(height: 10),
-            _buildNetworkInfoBars(),
-            const Spacer(),
-            _buildSpeedometer(),
-            const Spacer(),
-            _buildStatsRow(),
-            const SizedBox(height: 30),
-            _buildRequestButton(),
-            const SizedBox(height: 20),
-          ],
+    return WillPopScope(
+      onWillPop: () {
+        setState(() {
+          isConnectedGlobal = false;
+        });
+        return Future.value(true); 
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              const SizedBox(height: 10),
+              _buildNetworkInfoBars(),
+              const Spacer(),
+              _buildSpeedometer(),
+              const Spacer(),
+              _buildStatsRow(),
+              const SizedBox(height: 30),
+              _buildRequestButton(),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
-     
     );
   }
-
 
   Widget _buildAppBar() {
     return Padding(
@@ -110,7 +126,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _infoChip(Icons.bar_chart, 'Ping-165ms'),
-          _infoChip(null, '🇺🇸 United States', isCenter: true),
+          _infoChip(null,"${selectedServerGlobal.flagEmoji} ${selectedServerGlobal.country}", isCenter: true),
           _infoChip(Icons.wifi_tethering, 'Jitter-165ms'),
         ],
       ),
@@ -145,8 +161,10 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
 
   Widget _buildSpeedometer() {
     return AnimatedBuilder(
-      animation: _speedAnimation,
+      animation: _animation,
       builder: (context, child) {
+        final currentValue = _animation.value * targetUploadMain;
+        
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -155,7 +173,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
               height: 280,
               child: CustomPaint(
                 painter: SpeedometerPainter(
-                  currentValue: _speedAnimation.value,
+                  currentValue: currentValue,
                   maxValue: 1000, 
                 ),
               ),
@@ -168,7 +186,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
                 Text(
-                  _speedAnimation.value.toStringAsFixed(1),
+                  currentValue.toStringAsFixed(1),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 48,
@@ -188,16 +206,25 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
   }
 
   Widget _buildStatsRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _statItem('Download', '30.2 Mbps', false),
-          _statItem('Ping', '30.2 ms', false),
-          _statItem('Upload', '23.5 Mbps', true),
-        ],
-      ),
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final currentDownload = (_animation.value * targetDownload).toStringAsFixed(1);
+        final currentPing = (_animation.value * targetPing).toStringAsFixed(1);
+        final currentUpload = (_animation.value * targetUploadStat).toStringAsFixed(1);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _statItem('Download', '$currentDownload Mbps', false),
+              _statItem('Ping', '$currentPing ms', false),
+              _statItem('Upload', '$currentUpload Mbps', true),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -231,6 +258,9 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: InkWell(
         onTap: () {
+          setState(() {
+            _generateRandomTargets();
+          });
           _animationController.reset();
           _animationController.forward();
         },
@@ -246,29 +276,21 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
             ),
             border: Border.all(color: const Color(0xFF2B3A6B), width: 1),
           ),
-          child: Center(
-            child: TextButton(
-                onPressed: () {
-                  _animationController.reset();
-                  _animationController.forward();
-                },
-                child: const Text(
-                  'Request Connection',
-                  style: TextStyle(
-                    color: Colors.blueAccent,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )),
+          child: const Center(
+            child: Text(
+              'Request Connection',
+              style: TextStyle(
+                color: Colors.blueAccent,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),
     );
   }
-
-
 }
-
 
 class SpeedometerPainter extends CustomPainter {
   final double currentValue;
@@ -317,7 +339,6 @@ class SpeedometerPainter extends CustomPainter {
       canvas.drawLine(start, end, tickPaint);
     }
 
-  
     double progressRatio = (currentValue / 100)
         .clamp(0.0, 1.0); 
     double progressAngle = sweepAngle * progressRatio;

@@ -2,11 +2,12 @@
 
 import 'package:flutter/material.dart';
 
-const Color PRIMARYCOLOR = Color.fromARGB(255, 245, 88, 4);
+const Color PRIMARYCOLOR = const Color(0xFF0A0F1E);
+const Color SECONDARYCOLOR = const Color(0xFF0F172A);
 
 var themeData = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color(0xFF0A0F1E),
+    scaffoldBackgroundColor:PRIMARYCOLOR,
     textTheme: const TextTheme(
         bodyText1: TextStyle(fontFamily: 'poppins'),
         bodyText2: TextStyle(fontFamily: 'poppins'))

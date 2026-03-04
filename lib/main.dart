@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vpn_app/Screen/LoginPage.dart';
 
+import 'Screen/LogoPage.dart';
 import 'Utils/Theme.dart';
 
 void main() {
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       title: 'VPN App',
       debugShowCheckedModeBanner: false,
       theme: themeData,
-      home: const LoginScreen(),
+      home: const LogoPage(),
     );
   }
 }

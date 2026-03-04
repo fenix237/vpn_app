@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+//import 'package:material_symbols_icons/material_symbols_icons.dart';
 
+import '../Utils/Theme.dart';
 import 'Home.dart';
 import 'PremiumPage.dart';
 import 'ProfilePage.dart';
@@ -25,20 +27,27 @@ class _MainScreenState extends State<MainScreen> {
       basePing: 543,
     );
   late final List<Widget> _screens;
-  final List<ServerModel> _servers = [
-    ServerModel(country: 'Germany', flagEmoji: '🇩🇪', locationCount: 44, basePing: 543),
-    ServerModel(country: 'United Kingdom', flagEmoji: '🇬🇧', locationCount: 18, basePing: 543),
-    ServerModel(country: 'Australia', flagEmoji: '🇦🇺', locationCount: 46, basePing: 543),
-    ServerModel(country: 'Singapore', flagEmoji: '🇸🇬', locationCount: 22, basePing: 420),
-  ];
-
+final List<ServerModel> _servers = [
+  ServerModel(country: 'Germany', flagEmoji: '🇩🇪', locationCount: 44, basePing: 55),
+  ServerModel(country: 'Australia', flagEmoji: '🇦🇺', locationCount: 46, basePing: 321),
+  ServerModel(country: 'France', flagEmoji: '🇫🇷', locationCount: 12, basePing: 22),
+  ServerModel(country: 'Singapore', flagEmoji: '🇸🇬', locationCount: 22, basePing: 420),
+  ServerModel(country: 'United Kingdom', flagEmoji: '🇬🇧', locationCount: 18, basePing: 853),
+  ServerModel(country: 'United States', flagEmoji: '🇺🇸', locationCount: 64, basePing: 38),
+  ServerModel(country: 'Brazil', flagEmoji: '🇧🇷', locationCount: 10, basePing: 510),
+  ServerModel(country: 'Netherlands', flagEmoji: '🇳🇱', locationCount: 8, basePing: 45),
+  ServerModel(country: 'Japan', flagEmoji: '🇯🇵', locationCount: 31, basePing: 124),
+  ServerModel(country: 'Canada', flagEmoji: '🇨🇦', locationCount: 25, basePing: 82),
+  ServerModel(country: 'South Korea', flagEmoji: '🇰🇷', locationCount: 14, basePing: 142),
+  ServerModel(country: 'South Africa', flagEmoji: '🇿🇦', locationCount: 5, basePing: 920),
+];
 
   @override
   void initState() {
     super.initState();
    
     _screens = [
-      Home(selectedServer: _selectedServer,  onTapLocation: () => setState(() => _selectedIndex = 1),),
+      Home(selectedServer: _selectedServer,  onTapLocation: () => setState(() => _selectedIndex = 1),onTapPremium: () => setState(() => _selectedIndex = 3)),
       ServerSelectionScreen(
          servers: _servers,
         selectedServer: _selectedServer,
@@ -89,7 +98,7 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFF0F172A), 
+        color:PRIMARYCOLOR, 
         shape: const CircularNotchedRectangle(),
         notchMargin: 12,
         child: Container(

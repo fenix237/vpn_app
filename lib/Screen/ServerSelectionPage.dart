@@ -2,13 +2,20 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../Models/Server.dart';
+import '../Utils/Global.dart';
+import '../Utils/Theme.dart';
 
 class ServerSelectionScreen extends StatefulWidget {
   final List<ServerModel> servers;
   ServerModel selectedServer;
-  Function(ServerModel) onSelect;
+  final Function(ServerModel) onSelect;
 
-  ServerSelectionScreen({super.key, required this.servers, required this.selectedServer, required this.onSelect});
+  ServerSelectionScreen({
+    super.key,
+    required this.servers,
+    required this.selectedServer,
+    required this.onSelect,
+  });
 
   @override
   State<ServerSelectionScreen> createState() => _ServerSelectionScreenState();
@@ -17,57 +24,90 @@ class ServerSelectionScreen extends StatefulWidget {
 class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
   bool _isAutoSelectionEnabled = true;
   bool _isGlobalTabActive = false;
+  
+  // Logique de recherche
+  String _searchQuery = "";
+  final TextEditingController _searchController = TextEditingController();
 
-  void _toggleConnection(int index) {
-    try {
-      setState(() {
-        for (var server in widget.servers) {
-          server.isConnected = false;
+  // Fonction pour filtrer la liste des serveurs
+  List<ServerModel> get _filteredServers {
+    if (_searchQuery.isEmpty) return widget.servers;
+    return widget.servers
+        .where((s) => s.country.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
+
+  // Déterminer la couleur selon le ping
+  Color _getPingColor(int ping) {
+    if (ping < 50) return Colors.redAccent;
+    if (ping < 150) return Colors.orangeAccent;
+    return Colors.greenAccent;
+  }
+
+  void _handleServerAction(int index, ServerModel server) {
+    setState(() {
+      if (server.isConnected) {
+        server.isConnected = false;
+         isConnectedGlobal = false;
+      } else {
+        for (var s in widget.servers) {
+          s.isConnected = false;
         }
-        widget.servers[index].isConnected = true;
-        widget.selectedServer = widget.servers[index];
-        print("ohlaaa");
-        print("ohlaaa2");
-      });
-    } catch (e) {
-      print("L'erreur: $e");
-    }
+        server.isConnected = true;
+        widget.selectedServer = server;
+        selectedServerGlobal = server; 
+        isConnectedGlobal = true;
+       // widget.onSelect(server); 
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAppBar(),
-            const SizedBox(height: 20),
-            _buildSearchBar(),
-            const SizedBox(height: 20),
-            _buildTabs(),
-            const SizedBox(height: 20),
-            _buildAutoSelectionToggle(),
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Select server',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+    return WillPopScope(
+      onWillPop: () {
+        setState(() {
+          isConnectedGlobal = false;
+        });
+        return Future.value(true); 
+      },
+      child: Scaffold(
+        backgroundColor: PRIMARYCOLOR, 
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAppBar(),
+              const SizedBox(height: 20),
+              _buildSearchBar(),
+              const SizedBox(height: 20),
+              _buildTabs(),
+              const SizedBox(height: 20),
+              _buildAutoSelectionToggle(),
+              const SizedBox(height: 20),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Select server',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                itemCount: widget.servers.length,
-                itemBuilder: (context, index) {
-                  return _buildServerItem(widget.servers[index], index);
-                },
+              const SizedBox(height: 10),
+              Expanded(
+                child: _filteredServers.isEmpty 
+                  ? const Center(child: Text("No server found", style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      itemCount: _filteredServers.length,
+                      itemBuilder: (context, index) {
+                        final server = _filteredServers[index];
+                        return _buildServerItem(server, index);
+                      },
+                    ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -79,13 +119,16 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2640),
-              borderRadius: BorderRadius.circular(12),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E2640),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
             ),
-            child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
           ),
           const Text(
             'Select server',
@@ -108,22 +151,32 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
           border: Border.all(color: const Color(0xFF1E2640), width: 1),
         ),
         child: Row(
-          children: const [
-            SizedBox(width: 15),
-            Icon(Icons.search, color: Colors.grey, size: 20),
-            SizedBox(width: 10),
+          children: [
+            const SizedBox(width: 15),
+            const Icon(Icons.search, color: Colors.grey, size: 20),
+            const SizedBox(width: 10),
             Expanded(
               child: TextField(
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search',
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search Country...',
                   hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                   border: InputBorder.none,
                 ),
               ),
             ),
-            Icon(Icons.mic_none, color: Colors.grey, size: 20),
-            SizedBox(width: 15),
+            if (_searchQuery.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey, size: 18),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = "");
+                },
+              ),
+            const Icon(Icons.mic_none, color: Colors.grey, size: 20),
+            const SizedBox(width: 15),
           ],
         ),
       ),
@@ -244,7 +297,10 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
     );
   }
 
+
   Widget _buildServerItem(ServerModel server, int index) {
+    Color pingColor = _getPingColor(server.basePing);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -288,37 +344,34 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
           ),
           Row(
             children: [
-              const AnimatedPingBars(),
+              AnimatedPingBars(color: pingColor),
               const SizedBox(width: 4),
               Text(
                 '${server.basePing}ms',
-                style: const TextStyle(color: Colors.green, fontSize: 10),
+                style: TextStyle(color: pingColor, fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(width: 15),
           GestureDetector(
-            onTap: () => _toggleConnection(index),
+            onTap: () => _handleServerAction(index, server),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
+                // Changement de couleur fond : Rouge sombre si connecté, Bleu si déconnecté
                 color: server.isConnected ? const Color(0xFF2A1B28) : const Color(0xFF1E2640),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: server.isConnected ? Colors.red.withOpacity(0.3) : Colors.transparent,
+                  color: server.isConnected ? Colors.red.withOpacity(0.5) : Colors.transparent,
                 ),
               ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  server.isConnected ? 'Disconnect' : 'Connect',
-                  key: ValueKey<bool>(server.isConnected),
-                  style: TextStyle(
-                    color: server.isConnected ? const Color(0xFFFF3B30) : Colors.grey,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+              child: Text(
+                server.isConnected ? 'Disconnect' : 'Connect',
+                style: TextStyle(
+                  color: server.isConnected ? const Color(0xFFFF3B30) : Colors.blueAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -327,12 +380,13 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
       ),
     );
   }
-
-
 }
 
+
+
 class AnimatedPingBars extends StatefulWidget {
-  const AnimatedPingBars({super.key});
+  final Color color;
+  const AnimatedPingBars({super.key, required this.color});
 
   @override
   State<AnimatedPingBars> createState() => _AnimatedPingBarsState();
@@ -375,7 +429,7 @@ class _AnimatedPingBarsState extends State<AnimatedPingBars> {
           width: 2.5,
           height: 12 * _heights[index],
           decoration: BoxDecoration(
-            color: Colors.green,
+            color: widget.color, // Utilise la couleur dynamique
             borderRadius: BorderRadius.circular(1),
           ),
         );
