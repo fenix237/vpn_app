@@ -90,11 +90,11 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/images/logo.png" 
+# flutter_launcher_icons:
+#   android: true
+#   ios: true
+#   image_path: "assets/images/logo.png" 
   
-  adaptive_icon_background: "#0d1b3e" 
-  adaptive_icon_foreground: "assets/images/logo_nobg.png" 
+#   adaptive_icon_background: "#0d1b3e" 
+#   adaptive_icon_foreground: "assets/images/logo_nobg.png" 
 

@@ -46,7 +46,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         _pulseController.repeat();
         _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
           setState(() {
-            _duration += const Duration(seconds: 1);
+            duration += const Duration(seconds: 1);
           });
         });
         _graphTimer =
@@ -63,7 +63,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         _pulseController.reset();
         _timer?.cancel();
         _graphTimer?.cancel();
-        _duration = Duration.zero;
+        duration = Duration.zero;
         _currentDownload = 0.0;
         _currentUpload = 0.0;
         _downloadBars = List.generate(15, (index) => 0.1);
@@ -80,7 +80,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         _pulseController.repeat();
         _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
           setState(() {
-            _duration += const Duration(seconds: 1);
+            duration += const Duration(seconds: 1);
           });
         });
         _graphTimer =
@@ -97,7 +97,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         _pulseController.reset();
         _timer?.cancel();
         _graphTimer?.cancel();
-        _duration = Duration.zero;
+        duration = Duration.zero;
         _currentDownload = 0.0;
         _currentUpload = 0.0;
         _downloadBars = List.generate(15, (index) => 0.1);
@@ -178,7 +178,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    formatDuration(_duration),
+                    formatDuration(duration),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 42,

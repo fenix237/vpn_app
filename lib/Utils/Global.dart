@@ -11,3 +11,4 @@ import '../Models/Server.dart';
     );
 
  bool isConnectedGlobal = false;  
+ Duration duration = Duration.zero;

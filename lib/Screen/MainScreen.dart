@@ -68,7 +68,10 @@ final List<ServerModel> _servers = [
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body:  IndexedStack(  
+        index: _selectedIndex,
+        children: _screens,   
+      ),
       
       floatingActionButton: Container(
         height: 65,
@@ -108,7 +111,7 @@ final List<ServerModel> _servers = [
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
              
-              _buildNavItem(0, Icons.home_outlined, 'Home'),
+              _buildNavItem(0, Icons.home_filled, 'Home'),
              
               _buildNavItem(1, Icons.language_outlined, 'Server'),
               

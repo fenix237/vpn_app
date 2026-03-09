@@ -57,6 +57,7 @@ class _ServerSelectionScreenState extends State<ServerSelectionScreen> {
         widget.selectedServer = server;
         selectedServerGlobal = server; 
         isConnectedGlobal = true;
+        duration = Duration.zero;
        // widget.onSelect(server); 
       }
     });
